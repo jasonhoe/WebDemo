@@ -1,0 +1,453 @@
+﻿<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+        "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+    <title>ReportEditor</title>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+    <script src="third-party/jquery-1.10.2.js"></script>
+    <script type="text/javascript" charset="utf-8" src="ueditor.config.js"></script>
+    <script type="text/javascript" charset="utf-8" src="ueditor.all.js"> </script>
+    <!--建议手动加在语言，避免在ie下有时因为加载语言失败导致编辑器加载失败-->
+    <!--这里加载的语言文件会覆盖你在配置项目里添加的语言类型，比如你在配置项目里配置的是英文，这里加载的中文，那最后就是中文-->
+    <script type="text/javascript" charset="utf-8" src="lang/zh-cn/zh-cn.js"></script>
+    <link href="bootstrap.css" rel="stylesheet" />
+    <style type="text/css">
+        .container {
+         
+        }
+
+        h3 {
+            color: darkmagenta;
+            font-weight: bolder;
+        }
+
+        .container img {
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        #pic {
+            position: absolute;
+            display: none;
+            z-index: 99999;
+            top: 30px;
+            left: 300px;
+        }
+
+        #pic1 {
+            z-index: 999;
+            border-radius: 5px;
+            -webkit-box-shadow: 5px 5px 5px 5px hsla(0,0%,5%,1.00);
+            box-shadow: 5px 5px 5px 0px hsla(0,0%,5%,0.3);
+        }
+
+        .wrap {
+            background: #ccc;
+            position: relative;
+        }
+
+        .ball {
+            width: 20px;
+            height: 20px;
+            background: red;
+            border-radius: 50%;
+            position: absolute;
+            text-align: center;
+        }
+    </style>
+    <script type="text/javascript">
+        $(function () {
+            $(".container a").click(function (event) {
+                event.preventDefault(); // 阻止默认事件
+                event.stopPropagation(); // 阻止冒泡
+            });
+            $(".container a").dblclick(function (event) {
+                insertImgProcess(this.href);
+
+            });
+            $(".container a").hover(function () {
+                //$(this).append("<p id='pic'><img src='"+this.href+"' id='pic1'></p>");
+                $(".container a").mousemove(function (e) {
+                    $("#pic").css({
+                        //"top":(e.pageY+10)+"px",
+                        //"left":(e.pageX+20)+"px"
+                    }).fadeIn("fast");
+                    // $("#pic").fadeIn("fast");
+                });
+            }, function () {
+                $("#pic").remove();
+            });
+
+        });
+
+        function deleteImgProcess(imgObj) {
+
+            $(imgObj).parent().remove();
+            var imgbody = $("#img_body", $('#ueditor_0')[0].contentWindow.document);
+            var imgCount = $(imgbody).find("img");
+            switch (imgCount.length) {
+                case 1:
+                    $(imgCount).css("width", "300px");
+                    $(imgCount).css("height", "250px");
+                    $(imgCount).parent().css("text-align", "center");
+                    break;
+                case 2:
+                    $(imgCount).css("width", "300px");
+                    $(imgCount).css("height", "250px");
+                    break;
+                case 3:
+                    $(imgCount).css("width", "240px");
+                    $(imgCount).css("height", "190px");
+                    break;
+                case 4:
+                    $(imgCount).css("width", "180px");
+                    $(imgCount).css("height", "150px");
+                    $(imgCount).parent().css("padding-left", "3px");
+                    $(imgCount).parent().css("padding-right", "3px");
+                    break;
+
+            }
+        }
+        var dropUrl = "";
+        var dropObj = undefined;
+        function BindDelEvent() {
+            var imgbody = $("#img_body", $('#ueditor_0')[0].contentWindow.document);
+            var imgCount = $(imgbody).find("img");
+            $(imgCount).unbind();
+            $(imgCount).dblclick(function () {
+                deleteImgProcess(this);
+            });
+
+            $(imgCount).each(function () {
+
+                this.removeEventListener("dragstart", fundragstart);
+                this.removeEventListener("drop", fundrop);
+                this.removeEventListener("dragover", fundragover);
+
+                this.addEventListener("dragstart", fundragstart);
+                this.addEventListener("drop", fundrop);
+                this.addEventListener("dragover", fundragover);
+
+            })
+
+
+        }
+
+        function fundragstart(event) {
+            dropUrl = this.src;
+            dropObj = this;
+        }
+
+        function fundrop(event) {
+            event.preventDefault();
+            dropUrl = this.src;
+            this.src = dropObj.src;
+            dropObj.src = dropUrl;
+        }
+        function fundragover(event) {
+            event.preventDefault();
+        }
+
+        function insertImgProcess(imgUrl) {
+            var imgbody = $("#img_body", $('#ueditor_0')[0].contentWindow.document);
+            var trCount = $(imgbody).find("tr");
+            var imgCount = $(imgbody).find("img");
+
+            if (trCount.length == 0) {
+                var tdhtml = '<tr>' + getTdHtml(imgUrl) + '</tr>';
+
+                $(imgbody).html(tdhtml);
+                imgCount = $(imgbody).find("img");
+                $(imgCount).parent().css("text-align", "center");
+                //$(imgCount).parent().click(function (e) {
+                //    var radius = 10;//半径
+                //    var offset = $(this).offset();
+                //    var top = e.pageY - radius + "px";
+                //    var left = e.pageX - offset.left + "px";
+                //    var _html = '<div  style="z-index:999; top:' + top + ';left:' + left + ';width:20px; height: 20px; background: red;border-radius: 50%;position: absolute;text-align:center;">1</div>';
+                //    $(imgCount).parent().append(_html);
+                //})
+
+
+            }
+            if (trCount.length == 1 && imgCount.length <= 3) {
+                var trobj = trCount[0];
+                $(trobj).append(getTdHtml(imgUrl));
+                imgCount = $(imgbody).find("img");
+                switch (imgCount.length) {
+                    case 1:
+                        $(imgCount).css("width", "300px");
+                        $(imgCount).css("height", "250px");
+                        $(imgCount).parent().css("text-align", "center");
+                        break;
+                    case 2:
+                        $(imgCount).css("width", "300px");
+                        $(imgCount).css("height", "250px");
+                        break;
+                    case 3:
+                        $(imgCount).css("width", "240px");
+                        $(imgCount).css("height", "190px");
+                        break;
+                    case 4:
+                        $(imgCount).css("width", "180px");
+                        $(imgCount).css("height", "150px");
+                        $(imgCount).parent().css("padding-left", "3px");
+                        $(imgCount).parent().css("padding-right", "3px");
+                        break;
+
+                }
+            }
+            BindDelEvent();
+        }
+
+
+
+        function getTdHtml(imgUrl) {
+            return '<td class="wrap"><img style="width:300px;height:250px;cursor: pointer;z-index:-10" draggable="true" src="' + imgUrl + '"/></td>';
+        }
+    </script>
+</head>
+<body>
+    <div style="width: 20%; float: left;">
+        <div style="color: darkmagenta;font-weight: bolder;text-align:center">图像列表</div>
+        <div class="container" style="width: 100%; height: 680px; overflow: auto">
+            <a href="resource/葛英梅/2017_05_16_00_46_11/IMG-0001-00001.jpg">
+                <img src="resource/葛英梅/2017_05_16_00_46_11/IMG-0001-00001.jpg" width="100%" height="200">
+            </a>
+            <a href="resource/葛英梅/2017_05_16_00_46_11/IMG-0002-00001.jpg">
+                <img src="resource/葛英梅/2017_05_16_00_46_11/IMG-0002-00001.jpg" width="100%" height="200"></a>
+            <a href="resource/葛英梅/2017_05_16_00_46_11/IMG-0003-00001.jpg">
+                <img src="resource/葛英梅/2017_05_16_00_46_11/IMG-0003-00001.jpg" width="100%" height="200"></a>
+            <a href="resource/葛英梅/2017_05_16_00_46_11/IMG-0004-00001.jpg">
+                <img src="resource/葛英梅/2017_05_16_00_46_11/IMG-0004-00001.jpg" width="100%" height="200"></a>
+            <a href="resource/葛英梅/2017_05_16_00_46_11/IMG-0001-00001.jpg">
+                <img src="resource/葛英梅/2017_05_16_00_46_11/IMG-0001-00001.jpg" width="100%" height="200"></a>
+        </div>
+
+    </div>
+    <div class="section" style="width: 595pt; height: 500pt; float: left;overflow-y:auto;overflow-x:hidden">
+            <script id="editor" type="text/plain">
+         <div style='margin-left:3px;margin-right:3px;'>
+<h1 style="text-align: center;font-family:'Microsoft YaHei'">
+    <img style="width: 180px; height: 60px; margin-bottom: -10px; margin-left: -200px;" alt="" title="" src="resource/logo2.png" border="0" vspace="0" /> 江门市妇幼保健院
+</h1>
+<h2 style="text-align: center;">
+    彩超检查报告单
+</h2>
+<table style="width:100%">
+    <tbody>
+        <tr class="firstRow">
+            <td style="word-break: break-all;" valign="top" width="30%">
+                流水号：124892<br/>
+            </td>
+            <td style="word-break: break-all;" valign="top" width="40%">
+                就诊号：201511303009078967<br/>
+            </td>
+            <td style="word-break: break-all;" valign="top" width="30%">
+                住院号：01216291<br/>
+            </td>
+        </tr>
+    </tbody>
+</table>
+<hr/>
+<table style="width:100%">
+    <tbody>
+        <tr class="firstRow">
+            <td style="word-break: break-all;" valign="top" width="150">
+                姓名：三娃<br/>
+            </td>
+            <td style="word-break: break-all;" valign="top" width="70">
+                性别：男<br/>
+            </td>
+            <td style="word-break: break-all;" valign="top" width="100">
+                年龄：53岁<br/>
+            </td>
+            <td style="word-break: break-all;" valign="top">
+                检查日期：2015-12-02  
+            </td>
+        </tr>
+        <tr>
+            <td style="word-break: break-all;" valign="top" width="150">
+                科室：普外科门诊<br/>
+            </td>
+            <td style="word-break: break-all;" valign="top" width="70">
+                病室：<br/>
+            </td>
+            <td style="word-break: break-all;" valign="top" width="100">
+                床号：
+            </td>
+            <td style="word-break: break-all;" valign="top" >
+                审核日期：2015-12-02 
+            </td>
+        </tr>
+    </tbody>
+</table>
+<hr/>
+<p>
+    <span style="font-size: 15pt;">病情摘要：腹痛三天</span>
+</p>
+<p>
+    <span style="font-size: 15pt;display:none">临床诊断：肠炎</span>
+</p>
+<p>
+    <span style="font-size: 15pt;">检查部位：肝、脾 </span>
+</p>
+<table id="images" style="width:100%">
+    <tbody id="img_body">
+       
+    </tbody>
+</table>
+    <span style="font-size: 15pt;">超声所见：</span><br/>
+    <div id="suojian" contenteditable=true style="font-size: 13pt; width: 98%; height: 240pt;border-width: 1px;border-style: dashed;border-color: #c6c4c1;overflow-y: auto;">asdw</div>
+    <span style="font-size: 15pt;">超声诊断：</span>
+   <div id="zhenduan" title="诊断" contenteditable=true style="font-size: 13pt; width:98%; height: 150pt;border-width: 1px;border-style: dashed;border-color: #c6c4c1;overflow-y: auto;"></div>
+<p style="text-align: right;">
+    <span style="font-size: 15pt;">报告医师：</span><img style="width: 100px; height: 50px; margin-bottom: -15px;" alt="" title="" src="resource/lichao.png" /> <span style="font-size: 15pt;">审核医师：</span><img style="width: 100px; height: 50px; margin-bottom: -15px;" alt="" title="" src="resource/zhangfan.png" />&nbsp;&nbsp;&nbsp;
+</p>
+   
+<hr/>
+<p style="text-align: center;">
+    <span style="font-size: 12pt;">不作为法律依据，只作为临床诊断参考</span>
+</p>
+            </div> 
+            </script>
+    </div>
+    <div id="btns" style='float: left'>
+        <div>
+
+            <button onclick="getContent()">获得内容</button>
+
+            <button onclick="setFocus(true)">使编辑器获得焦点</button><br />
+            <button onmousedown="isFocus(event)">编辑器是否获得焦点</button><br />
+            <button onmousedown="setblur(event)">编辑器失去焦点</button>
+
+        </div>
+        <div>
+            <button onclick="getText()">获得当前选中的文本</button><br />
+            <button id="enable" onclick="setEnabled()">可以编辑</button>
+            <button onclick="setDisabled()">不可编辑</button>
+
+        </div>
+
+        <div style="font-family: 'Microsoft YaHei'">
+            <button onclick="getLocalData()">获取草稿箱内容</button><br />
+            <button onclick="clearLocalData()">清空草稿箱</button>
+        </div>
+
+    </div>
+
+
+    <script type="text/javascript">
+
+        //实例化编辑器
+        //建议使用工厂方法getEditor创建和引用编辑器实例，如果在某个闭包下引用该编辑器，直接调用UE.getEditor('editor')就能拿到相关的实例
+        var ue = UE.getEditor('editor', {
+            toolbars: [
+                ['print', //打印
+                 'undo',
+                 'redo',
+              'fontfamily', //字体
+              'fontsize', //字号
+              'bold',
+              'italic',
+              'forecolor', //字体颜色
+              'spechars', //特殊字符
+              //'justifyleft', //居左对齐
+              //'justifyright', //居右对齐
+              //'justifycenter', //居中对齐
+              //'justifyjustify', //两端对齐
+              //'inserttable', //插入表格
+              //'deletetable', //删除表格
+              //'insertimage',
+              'template',
+              'cleardoc' //清空文档
+                ]
+            ],
+         //   initialFrameWidth: 794, //初始化编辑器宽度，默认1000
+         //   initialFrameHeight: 700,//初始化编辑器高度，默认320  --1123
+            allowDivTransToP: false,
+            readonly: true,
+            wordCount: false,
+            elementPathEnabled: false, //是否启用元素路径，默认是显示
+            enableContextMenu: false, //打开右键菜单功能
+            autoSyncData: true,////自动同步编辑器要提交的数据
+            imagePopup: false, //图片操作的浮层开关，默认打开
+            enableAutoSave: true, //启用自动保存
+            saveInterval: 10000,//自动保存间隔时间，单位ms
+            initialContent: "",//初始化编辑器的内容，也可以通过textarea/script给值
+            tableDragable: false,
+            toolbarTopOffset: 400,
+        });
+
+
+        function isFocus(e) {
+            alert(UE.getEditor('editor').isFocus());
+            UE.dom.domUtils.preventDefault(e)
+        }
+        function setblur(e) {
+            UE.getEditor('editor').blur();
+            UE.dom.domUtils.preventDefault(e)
+        }
+
+        function getContent() {
+
+            var arr = [];
+            arr.push("使用editor.getContent()方法可以获得编辑器的内容");
+            arr.push("内容为：");
+            arr.push(UE.getEditor('editor').getContent());
+            alert(arr.join("\n"));
+        }
+
+
+
+        function getText() {
+            //当你点击按钮时编辑区域已经失去了焦点，如果直接用getText将不会得到内容，所以要在选回来，然后取得内容
+            var range = UE.getEditor('editor').selection.getRange();
+            range.select();
+            var txt = UE.getEditor('editor').selection.getText();
+            alert(txt)
+        }
+
+        function getContentTxt() {
+
+            var arr = [];
+            arr.push("使用editor.getContentTxt()方法可以获得编辑器的纯文本内容");
+            arr.push("编辑器的纯文本内容为：");
+            arr.push(UE.getEditor('editor').getContentTxt());
+            alert(arr.join("\n"));
+        }
+        function hasContent() {
+            var arr = [];
+            arr.push("使用editor.hasContents()方法判断编辑器里是否有内容");
+            arr.push("判断结果为：");
+            arr.push(UE.getEditor('editor').hasContents());
+            alert(arr.join("\n"));
+        }
+        function setFocus() {
+            try {
+                var sss = $("#ueditor_0").contents().find("#suojian")[0];
+                sss.focus();
+                $("#edui1_iframeholder").css("height", "500px");
+                $("#edui1_iframeholder").css("overflow", "auto");
+
+                //   alert(sss);
+            } catch (e) {
+                alert(e);
+            }
+
+        }
+
+
+        function getLocalData() {
+            alert(UE.getEditor('editor').execCommand("getlocaldata"));
+        }
+
+        function clearLocalData() {
+            UE.getEditor('editor').execCommand("clearlocaldata");
+            alert("已清空草稿箱")
+        }
+
+
+    </script>
+</body>
+</html>
