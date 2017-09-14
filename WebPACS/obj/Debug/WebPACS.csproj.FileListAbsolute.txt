@@ -1,0 +1,2 @@
+E:\WebPACS\WebPACS\obj\Debug\WebPACS.csprojResolveAssemblyReference.cache
+D:\WebPACS\WebPACS\obj\Debug\WebPACS.csprojResolveAssemblyReference.cache
