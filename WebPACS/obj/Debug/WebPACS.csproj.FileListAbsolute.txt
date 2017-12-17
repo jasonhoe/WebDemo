@@ -1,2 +1,14 @@
 E:\WebPACS\WebPACS\obj\Debug\WebPACS.csprojResolveAssemblyReference.cache
 D:\WebPACS\WebPACS\obj\Debug\WebPACS.csprojResolveAssemblyReference.cache
+D:\Documents\GitHub\WebDemo\WebPACS\bin\WebPACS.dll.config
+D:\Documents\GitHub\WebDemo\WebPACS\bin\WebPACS.dll
+D:\Documents\GitHub\WebDemo\WebPACS\bin\WebPACS.pdb
+D:\Documents\GitHub\WebDemo\WebPACS\bin\Newtonsoft.Json.dll
+D:\Documents\GitHub\WebDemo\WebPACS\bin\Newtonsoft.Json.pdb
+D:\Documents\GitHub\WebDemo\WebPACS\bin\Newtonsoft.Json.xml
+D:\Documents\GitHub\WebDemo\WebPACS\obj\Debug\WebPACS.csproj.CoreCompileInputs.cache
+D:\Documents\GitHub\WebDemo\WebPACS\obj\Debug\WebPACS.dll
+D:\Documents\GitHub\WebDemo\WebPACS\obj\Debug\WebPACS.pdb
+D:\Documents\GitHub\WebDemo\WebPACS\obj\Debug\WebPACS.csprojResolveAssemblyReference.cache
+D:\Documents\GitHub\WebDemo\WebPACS\bin\Dicom.pdb
+D:\Documents\GitHub\WebDemo\WebPACS\bin\Dicom.xml

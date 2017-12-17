@@ -1,4 +1,5 @@
-﻿<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+﻿
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
           "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
@@ -17,9 +18,7 @@
     <link href="css/bootstrap.css" rel="stylesheet" />
     <link rel="stylesheet" href="css/zTreeStyle/zTreeStyle.css" type="text/css">
     <script src="js/react-bootstrap-table.js"></script>
-    <script src="https://cdn.bootcss.com/babel-standalone/6.22.1/babel.min.js"></script>
     <link href="css/react-bootstrap-table.min.css" rel="stylesheet" />
-
     <style type="text/css">
         #imglist {
             padding-right: 3px;
@@ -64,86 +63,105 @@
             position: absolute;
             text-align: center;
         }
- 
+
+        .dengji {
+            background-color: #FFFFBB;
+        }
+
+        .shenhe {
+            background-color: #FFB3FF;
+        }
+
+        #div_left {
+            font-size: 20px;
+        }
     </style>
     <script type="text/javascript">
         var nthTabs;
         var imgUrlArr = new Array();
-
+        var wsImpl = window.WebSocket || window.MozWebSocket;
+        var wsstatus = false;
         $(function () {
             PageSetting();
-
+            createWs();
             $("#imglist a").click(function (event) {
                 event.preventDefault(); // 阻止默认事件
                 event.stopPropagation(); // 阻止冒泡
             });
-           
-            $("#imglist").on("dblclick","img",function () {
-                if(imgUrlArr.length<9){
-                imgUrlArr.push(this.src);
-                setImgLayout();
+            $("#imglist").on("dblclick", "img", function () {
+                if (imgUrlArr.length < 9) {
+                    imgUrlArr.push(this.src);
+                    setImgLayout();
                 }
-            }).on("click","img",function(){
+            }).on("click", "img", function () {
                 event.preventDefault(); // 阻止默认事件
                 event.stopPropagation(); // 阻止冒泡
-            }).on("mouseover mouseout","a",function(){
-                if(event.type == "mouseover"){
-                    $(this).append("<p id='pic'><img src='"+this.href+"' id='pic1'></p>");
+            }).on("mouseover mouseout", "a", function () {
+                if (event.type == "mouseover") {
+                    $(this).append("<p id='pic'><img src='" + this.href + "' id='pic1'></p>");
                     $("#imglist a").mousemove(function (e) {
-                    //console.log(e.pageX);
-                    $("#pic").css({
-                        //"top":(e.pageY+10)+"px",
-                        "right":(e.pageX)+"px"
-                    }).fadeIn("fast");
-                     $("#pic").fadeIn("fast");
-                });
+                        //console.log(e.pageX);
+                        $("#pic").css({
+                            //"top":(e.pageY+10)+"px",
+                            "right": (e.pageX) + "px"
+                        }).fadeIn("fast");
+                        $("#pic").fadeIn("fast");
+                    });
                 }
-                if(event.type == "mouseout"){
+                if (event.type == "mouseout") {
                     $("#pic").remove();
                 }
-
             })
-
-        
             $.fn.zTree.init($("#treeDemo"), setting, zNodes);
-
             InitImagesList();
-
         });
-
-        function InitImagesList()
-        {
-           $.getJSON("image.json",function(jsonobj){
-            var pacsurl='http://localhost/pacs/report/getImage.ashx?dcm_path=';
-         
-            for (var index = 0; index < jsonobj.images.length; index++) {
-                var item = jsonobj.images[index];
-                var temp='<a href="'+pacsurl+item+'"><img src="'+pacsurl+item+'" width="100%" height="200"></a>';
-                    $("#imglist").append(temp);
+        var imagecount = 1
+        function createWs() {
+            window.ws = new wsImpl('ws://localhost:8181/');
+            ws.onmessage = function (evt) {
+                // alert(evt.data);
+                var imaurl = "http://localhost/pacs/report/getImage.ashx?dcm_path=E:/dcms/SC." + evt.data + ".dcm";
+                var temp = '<a id="img' + imagecount + '" href="' + imaurl + '"><img src="' + imaurl + '" width="320px" height="240"></a>';
+                $("#imglist").append(temp);
+                document.getElementById("img" + imagecount).scrollIntoView();
+                imagecount += 1;
+            };
+            // when the connection is established, this method is called
+            ws.onopen = function () {
+                // alert("open");
+                wsstatus = true;
+            };
+            // when the connection is closed, this method is called
+            ws.onclose = function () {
+                // alert("close");
+                wsstatus = false;
             }
-           })
-
-          
-
-            $.ajax({
-                type: "POST",
-                async: true,
-                processData: false,
-                beforeSend: null,
-                url:"UEditor/net/controller.ashx" ,
-                data: "action=1",
-                success: function(msg){
-                    //alert(msg);
-                },
-                cache:false
-            });
-
         }
-
+        function InitImagesList() {
+            $.getJSON("image.json", function (jsonobj) {
+                var pacsurl = 'http://localhost/pacs/report/getImage.ashx?dcm_path=';
+                for (var index = 0; index < jsonobj.images.length; index++) {
+                    var item = jsonobj.images[index];
+                    var temp = '<a href="' + pacsurl + item + '"><img src="' + pacsurl + item + '" width="100%" height="200"></a>';
+                    // $("#imglist").append(temp);
+                }
+            })
+            //$.ajax({
+            // type: "POST",
+            // async: true,
+            // processData: false,
+            // beforeSend: null,
+            // url:"UEditor/net/controller.ashx" ,
+            // data: "action=1",
+            // success: function(msg){
+            // //alert(msg);
+            // },
+            // cache:false
+            //});
+        }
         function PageSetting() {
             var screen_width = window.screen.width;
             var screen_height = window.screen.height;
-
             switch (screen_width) {
                 case 1920:
                     $("#div_left").css("width", "600px");
@@ -176,9 +194,7 @@
                     $("#div_right").css("width", "220px");
                     break;
                 default:
-
             }
-
             switch (screen_height) {
                 case 1080:
                     $("#div_left").css("height", "880px");
@@ -221,12 +237,9 @@
                     $("#treeDemo").css("height", "600px");
                     break;
                 default:
-
             }
-
         }
         function deleteImgProcess(imgObj) {
-
             //$(imgObj).parent().remove();
             imgUrlArr.removeByValue(imgObj.src);
             setImgLayout();
@@ -237,7 +250,7 @@
                 this.splice(index, 1);
                 index = this.indexOf(val);
             }
-        };  
+        };
         var dropUrl = "";
         var dropObj = undefined;
         function BindDelEvent() {
@@ -247,29 +260,19 @@
             $(imgCount).dblclick(function () {
                 deleteImgProcess(this);
             });
-
             $(imgCount).each(function () {
-
                 this.removeEventListener("dragstart", fundragstart);
                 this.removeEventListener("drop", fundrop);
                 this.removeEventListener("dragover", fundragover);
-
                 this.addEventListener("dragstart", fundragstart);
                 this.addEventListener("drop", fundrop);
                 this.addEventListener("dragover", fundragover);
-
             })
-
-
-
-
         }
-
         function fundragstart(event) {
             dropUrl = this.src;
             dropObj = this;
         }
-
         function fundrop(event) {
             event.preventDefault();
             dropUrl = this.src;
@@ -279,45 +282,40 @@
         function fundragover(event) {
             event.preventDefault();
         }
-         
         function setImgLayout() {
             var imagesDiv = $("#images", $('#ueditor_0')[0].contentWindow.document);
             var imgCount = imgUrlArr.length;
-             
             switch (imgCount) {
                 case 0:
                     $(imagesDiv).html("");
                     break;
                 case 1:
                     var tdhtml = '<table style="width:100%"><tr>' + getTdHtml(imgUrlArr[0]) + '</table></tr>';
-
                     $(imagesDiv).html(tdhtml);
                     var imgObjs = $(imagesDiv).find("img");
-                    $(imgObjs).css("width", "300px");
-                    $(imgObjs).css("height", "250px");
+                    $(imgObjs).css("width", "320px");
+                    $(imgObjs).css("height", "240px");
                     break;
                 case 2:
                     var tdhtml = '<table style="width:100%"><tr>' + getTdHtml(imgUrlArr[0]) + getTdHtml(imgUrlArr[1]) + '</table></tr>';
-
                     $(imagesDiv).html(tdhtml);
                     var imgObjs = $(imagesDiv).find("img");
-                    $(imgObjs).css("width", "300px");
-                    $(imgObjs).css("height", "250px");
+                    $(imgObjs).css("width", "320px");
+                    $(imgObjs).css("height", "240px");
                     break;
                 case 3:
                     var tdhtml = '<table style="width:100%"><tr>' + getTdHtml(imgUrlArr[0]) + getTdHtml(imgUrlArr[1]) + getTdHtml(imgUrlArr[2]) + '</table></tr>';
-
                     $(imagesDiv).html(tdhtml);
                     var imgObjs = $(imagesDiv).find("img");
                     $(imgObjs).css("width", "240px");
-                    $(imgObjs).css("height", "190px");
+                    $(imgObjs).css("height", "180px");
                     break;
                 case 4:
                     var tdhtml = '<table style="width:100%"><tr>' + getTdHtml(imgUrlArr[0]) + getTdHtml(imgUrlArr[1]) + getTdHtml(imgUrlArr[2]) + getTdHtml(imgUrlArr[3]) + '</table></tr>';
                     $(imagesDiv).html(tdhtml);
                     var imgObjs = $(imagesDiv).find("img");
                     $(imgObjs).css("width", "180px");
-                    $(imgObjs).css("height", "150px");
+                    $(imgObjs).css("height", "135px");
                     break;
                 case 5:
                     var tdhtml = '<table style="width:100%"><tr>' + getTdHtml(imgUrlArr[0]) + getTdHtml(imgUrlArr[1]) + '</table></tr>';
@@ -325,7 +323,7 @@
                     $(imagesDiv).html(tdhtml);
                     var imgObjs = $(imagesDiv).find("img");
                     $(imgObjs).css("width", "240px");
-                    $(imgObjs).css("height", "190");
+                    $(imgObjs).css("height", "180px");
                     break;
                 case 6:
                     var tdhtml = '<table style="width:100%"><tr>' + getTdHtml(imgUrlArr[0]) + getTdHtml(imgUrlArr[1]) + getTdHtml(imgUrlArr[2]) + '</table></tr>';
@@ -333,7 +331,7 @@
                     $(imagesDiv).html(tdhtml);
                     var imgObjs = $(imagesDiv).find("img");
                     $(imgObjs).css("width", "240px");
-                    $(imgObjs).css("height", "190");
+                    $(imgObjs).css("height", "180px");
                     break;
                 case 7:
                     var tdhtml = '<table style="width:100%"><tr>' + getTdHtml(imgUrlArr[0]) + getTdHtml(imgUrlArr[1]) + getTdHtml(imgUrlArr[2]) + '</table></tr>';
@@ -341,7 +339,7 @@
                     $(imagesDiv).html(tdhtml);
                     var imgObjs = $(imagesDiv).find("img");
                     $(imgObjs).css("width", "180px");
-                    $(imgObjs).css("height", "150px");
+                    $(imgObjs).css("height", "135px");
                     break;
                 case 8:
                     var tdhtml = '<table style="width:100%"><tr>' + getTdHtml(imgUrlArr[0]) + getTdHtml(imgUrlArr[1]) + getTdHtml(imgUrlArr[2]) + getTdHtml(imgUrlArr[3]) + '</table></tr>';
@@ -349,33 +347,22 @@
                     $(imagesDiv).html(tdhtml);
                     var imgObjs = $(imagesDiv).find("img");
                     $(imgObjs).css("width", "180px");
-                    $(imgObjs).css("height", "150px");
+                    $(imgObjs).css("height", "135px");
                     break;
                 case 9:
-
                     break;
                 default:
             }
- 
             BindDelEvent();
         }
-
-
-
         function getTdHtml(imgUrl) {
-            return '<td class="wrap" style="text-align:center"><img style="width:300px;height:250px;cursor: pointer;z-index:-10"  src="' + imgUrl + '"/></td>';
+            return '<td class="wrap" style="text-align:center"><img style="width:300px;height:250px;cursor: pointer;z-index:-10" src="' + imgUrl + '"/></td>';
         }
-
-
         var setting = {
             view: {
                 //showIcon: false
-
             }
-
-
         };
-
         var zNodes = [
             {
                 name: "父节点1 - 展开", open: true,
@@ -433,112 +420,18 @@
                     }
                 ]
             }
-
         ];
-    </script>
-    <script type="text/babel">
-
-        // products will be presented by react-bootstrap-table
-        const products = [];
-
-        function addProducts(quantity) {
-        const startId = products.length;
-        for (let i = 0; i < quantity; i++) {
-        const id = startId + i;
-        
-        products.push({
-        id: id,
-        name: 'Item name ' + id,
-        price: 2100 + i,
-        popover:''
-        });
-        
-        }
-        }
-
-        addProducts(5);
-
-        function trClassFormat(row, rowIndex) {
-        return rowIndex % 2 === 0 ? "tr-odd" : "tr-even";  // return class name.
-        }
-
-        class BSTable extends React.Component {
-        render() {
-        return (
-            <button type="button" class="btn btn-success" title="Popove" data-container="body" data-toggle="popover" data-trigger="click" data-placement="right" data-content="wwww">+</button>
-            )
-            } }
-
-
-
-        function isExpandableRow(row) {
-            return true
-        }
-
-        function  expandComponent(row) {
-        return (
-        <BSTable data={ row.expand } />
-            );
-        }
-
-
-
-
-        function popoverFormatter(cell, row){
-        return '<button type="button" class="btn btn-success" title="Popove" data-container="body" data-toggle="popover" data-trigger="click" data-placement="right" data-content="wwww">+</button>'
-        }
-        var selRowIndex=null;
-        function onRowSelect(row, isSelected, e, rowIndex) {
-        let rowStr = '';
-        for (const prop in row) {
-        rowStr += prop + ': "' + row[prop] + '"';
-        }
-        console.log(e);
-        //alert(`Selected: ${isSelected}, rowIndex: ${rowIndex}, row: ${rowStr}`);
-        selRowIndex=rowIndex;
-        //alert(selRowIndex);
-        }
-
-        function  onRowDoubleClick(row, isSelected, e, rowIndex) {
-        selRowIndex=rowIndex;
-       // alert(selRowIndex);
-        }
-
-        const selectRow = {
-        mode: 'radio',
-        clickToSelect: true,
-        bgColor: '#FFE6B0',
-        hideSelectColumn: true,
-        onSelect: onRowSelect,
-        clickToExpand: true
-        };
-        const options = {
-        expandRowBgColor: 'rgb(242, 255, 163)',
-        onRowDoubleClick: onRowDoubleClick
-        };
-
-        ReactDOM.render(
-        <BootstrapTable data={products} striped={true} hover={true} condensed={true} bordered={true} selectRow={ selectRow } height='580' trClassName={trClassFormat} options={ options } expandableRow={ isExpandableRow } expandComponent={ expandComponent } expandColumnOptions={{ expandColumnVisible: true }}>
-            <TableHeaderColumn dataField="id" isKey={true} dataAlign="center" dataSort={true}>ID</TableHeaderColumn>
-            <TableHeaderColumn dataField="name" dataSort={true}>Name</TableHeaderColumn>
-            <TableHeaderColumn dataField="price">ProcessNum</TableHeaderColumn>
-            <TableHeaderColumn dataField="popover" dataFormat={popoverFormatter} width='40'></TableHeaderColumn>
-        </BootstrapTable>,
-        document.getElementById("data")
-        );
-
-        $('[data-toggle="popover"]').popover();
-
-
     </script>
 </head>
 <body>
-
-    <div id="div_left" style="width: 300px; float: left;overflow:auto">
-
+    <div id="div_left" style="width: 300px; float: left;">
         <div id="data"></div>
+        <input type="button" value="打开采集" onclick="openvideo()" />
+        <input type="button" value="采集" onclick="cap()" />
+        <video id="video" width="320" height="240"></video>
+        <canvas id="canvas" style="display:none" width="320" height="240"></canvas>
     </div>
-    <div id="div_center" class="section" style="width: 620pt; height: 480pt; float: left; overflow-y: auto; overflow-x: hidden">
+    <div id="div_center" class="section" style="width: 620pt; height: 600pt; float: left; overflow-y: auto; overflow-x: hidden">
         <script id="editor" type="text/plain">
             <div style='margin-left:3px;margin-right:3px;'>
                 <h1 style="text-align: center;font-family:'Microsoft YaHei'">
@@ -606,7 +499,6 @@
                     <span style="font-size: 15pt;">检查部位：肝、脾 </span>
                 </p>
                 <div id="images" style="width:100%"></div>
-                 
                 <span style="font-size: 15pt;">超声所见：</span><br />
                 <div id="suojian" contenteditable=true style="font-size: 13pt; width: 98%; height: 200pt;border-width: 1px;border-style: dashed;border-color: #c6c4c1;overflow-y: auto;">asdw</div>
                 <span style="font-size: 15pt;">超声诊断：</span>
@@ -614,7 +506,6 @@
                 <p style="text-align: right;">
                     <span style="font-size: 15pt;">报告医师：</span><img style="width: 100px; height: 50px; margin-bottom: -15px;" alt="" title="" src="resource/lichao.png" /> <span style="font-size: 15pt;">审核医师：</span><img style="width: 100px; height: 50px; margin-bottom: -15px;" alt="" title="" src="resource/zhangfan.png" />&nbsp;&nbsp;&nbsp;
                 </p>
-
                 <hr />
                 <p style="text-align: center;">
                     <span style="font-size: 12pt;">不作为法律依据，只作为临床诊断参考</span>
@@ -627,27 +518,21 @@
             <li role="presentation" class="active"><a href="#template" data-toggle="tab">诊断模板</a></li>
             <li role="presentation"><a href="#imglist" data-toggle="tab">采集列表</a></li>
         </ul>
-
         <div id="div_right_context" class="tab-content" style='height: 650px; overflow: auto'>
             <div id="template" class="tab-pane ">
                 <ul id="treeDemo" class="ztree" style="overflow-x: hidden; overflow-y: auto; height: 650px"></ul>
                 <div>
                     <div>
-
                         <button onclick="getContent()">获得内容</button>
-
                         <button onclick="setFocus(true)">使编辑器获得焦点</button><br />
                         <button onmousedown="isFocus(event)">编辑器是否获得焦点</button><br />
                         <button onmousedown="setblur(event)">编辑器失去焦点</button>
-
                     </div>
                     <div>
                         <button onclick="getText()">获得当前选中的文本</button><br />
                         <button id="enable" onclick="setEnabled()">可以编辑</button>
                         <button onclick="setDisabled()">不可编辑</button>
-
                     </div>
-
                     <div style="font-family: 'Microsoft YaHei'">
                         <button onclick="getLocalData()">获取草稿箱内容</button><br />
                         <button onclick="clearLocalData()">清空草稿箱</button>
@@ -657,22 +542,19 @@
             </div>
             <div id="imglist" class="tab-pane active">
                 <a href="resource/葛英梅/2017_05_16_00_46_11/IMG-0001-00001.jpg">
-                    <img src="resource/葛英梅/2017_05_16_00_46_11/IMG-0001-00001.jpg" width="100%" height="200">
+                    <img src="resource/葛英梅/2017_05_16_00_46_11/IMG-0001-00001.jpg" width="320px" height="240px">
                 </a>
                 <a href="resource/葛英梅/2017_05_16_00_46_11/IMG-0002-00001.jpg">
-                    <img src="resource/葛英梅/2017_05_16_00_46_11/IMG-0002-00001.jpg" width="100%" height="200">
+                    <img src="resource/葛英梅/2017_05_16_00_46_11/IMG-0002-00001.jpg" width="320px" height="240px">
                 </a>
                 <a href="resource/葛英梅/2017_05_16_00_46_11/IMG-0003-00001.jpg">
-                    <img src="resource/葛英梅/2017_05_16_00_46_11/IMG-0003-00001.jpg" width="100%" height="200">
+                    <img src="resource/葛英梅/2017_05_16_00_46_11/IMG-0003-00001.jpg" width="320px" height="240px">
                 </a>
                 <a href="resource/葛英梅/2017_05_16_00_46_11/IMG-0004-00001.jpg">
-                    <img src="resource/葛英梅/2017_05_16_00_46_11/IMG-0004-00001.jpg" width="100%" height="200">
+                    <img src="resource/葛英梅/2017_05_16_00_46_11/IMG-0004-00001.jpg" width="320px" height="240px">
                 </a>
-             
             </div>
-
         </div>
-
     </div>
     <div id="myPopover" class="popover popover-default">
         <div class="arrow"></div>
@@ -684,9 +566,103 @@
             <button type="submit" class="btn btn-sm btn-primary">Submit</button><button type="reset" class="btn btn-sm btn-default">Reset</button>
         </div>
     </div>
-
     <script type="text/javascript">
-
+        var ReactBsTable = window.BootstrapTable;
+        var products = [];
+        var table = null;
+        setTimeout(add, 1000);
+        function add() {
+            $.getJSON("patients1000.json", function (jsonobj) {
+                products = jsonobj;
+                //console.log(products.length);
+                table.setState({ data: products });
+                table.store.data = products;
+                table.updater;
+            });
+        }
+        function trClassFormat(row, rowIndex) {
+            if (row.PROCESS_STATUS_ID == 7) {
+                return "shenhe";
+            } else {
+                return "dengji";
+            }
+        }
+        function createCustomClearButton(onClick) {
+            return React.createElement(
+                'button',
+                { className: 'btn btn-warning', onClick: onClick },
+                '清除'
+            )
+        }
+        function isExpandableRow(row) {
+            return true;
+        }
+        function expandComponent() {
+            return React.createElement(
+                'button',
+                { className: 'btn btn-warning' },
+                '申请单'
+            ), React.createElement(
+                'button',
+                { className: 'btn btn-warning' },
+                '历史影像'
+            ), React.createElement(
+                'button',
+                { className: 'btn btn-warning' },
+                '图像采集'
+            )
+        }
+        var options = {
+            onRowClick: function onRowClick(row) {
+                console.log(row);
+                //alert('You click row id: ' + row.PATIENT_NAME);
+            },
+            onRowDoubleClick: function onRowDoubleClick(row) {
+                console.log(row);
+                //alert('You double click row id: ' + row.PATIENT_NAME);
+            },
+            clearSearch: true,
+            clearSearchBtn: createCustomClearButton
+        };
+        var selectRow = {
+            mode: 'radio', // multi select
+            clickToSelect: true,
+            bgColor: '#BBFF66',
+            hideSelectColumn: true,
+            clickToExpand: true
+        };
+        var table = ReactDOM.render(
+            React.createElement(
+                BootstrapTable,
+                { data: products, height: "880px", width: "280px", hover: true, trClassName: trClassFormat, search: true, searchPlaceholder: "输入任意内容筛选...", options: options, selectRow: selectRow, expandableRow: isExpandableRow, expandComponent: expandComponent },
+                React.createElement(
+                    TableHeaderColumn,
+                    { dataField: "REGISTRATION_ID", hidden: true, isKey: true, dataAlign: "center", dataSort: true },
+                    "REGID"
+                ),
+                React.createElement(
+                    TableHeaderColumn,
+                    { dataField: "PATIENT_NAME", dataSort: true },
+                    "姓名"
+                ),
+                React.createElement(
+                    TableHeaderColumn,
+                    { dataField: "PROCESS_NUM", dataSort: true },
+                    "流水号"
+                ),
+                React.createElement(
+                    TableHeaderColumn,
+                    { dataField: "MODALITY", dataSort: true },
+                    "模态"
+                ),
+                React.createElement(
+                    TableHeaderColumn,
+                    { dataField: "STUDYROOM_NAME", dataSort: true },
+                    "诊室"
+                )
+            ), document.getElementById("div_left"));
+    </script>
+    <script type="text/javascript">
         //实例化编辑器
         //建议使用工厂方法getEditor创建和引用编辑器实例，如果在某个闭包下引用该编辑器，直接调用UE.getEditor('editor')就能拿到相关的实例
         var ue = UE.getEditor('editor', {
@@ -711,8 +687,8 @@
                     'cleardoc' //清空文档
                 ]
             ],
-            //   initialFrameWidth: 794, //初始化编辑器宽度，默认1000
-            //   initialFrameHeight: 700,//初始化编辑器高度，默认320  --1123
+            // initialFrameWidth: 794, //初始化编辑器宽度，默认1000
+            // initialFrameHeight: 700,//初始化编辑器高度，默认320 --1123
             allowDivTransToP: false,
             readonly: true,
             wordCount: false,
@@ -726,8 +702,6 @@
             tableDragable: false,
             toolbarTopOffset: 400,
         });
-
-
         function isFocus(e) {
             alert(UE.getEditor('editor').isFocus());
             UE.dom.domUtils.preventDefault(e)
@@ -736,18 +710,13 @@
             UE.getEditor('editor').blur();
             UE.dom.domUtils.preventDefault(e)
         }
-
         function getContent() {
-
             var arr = [];
             arr.push("使用editor.getContent()方法可以获得编辑器的内容");
             arr.push("内容为：");
             arr.push(UE.getEditor('editor').getContent());
             alert(arr.join("\n"));
         }
-
-
-
         function getText() {
             //当你点击按钮时编辑区域已经失去了焦点，如果直接用getText将不会得到内容，所以要在选回来，然后取得内容
             var range = UE.getEditor('editor').selection.getRange();
@@ -755,9 +724,7 @@
             var txt = UE.getEditor('editor').selection.getText();
             alert(txt)
         }
-
         function getContentTxt() {
-
             var arr = [];
             arr.push("使用editor.getContentTxt()方法可以获得编辑器的纯文本内容");
             arr.push("编辑器的纯文本内容为：");
@@ -777,25 +744,69 @@
                 sss.focus();
                 //$("#edui1_iframeholder").css("height", "500px");
                 //$("#edui1_iframeholder").css("overflow", "auto");
-
-                //   alert(sss);
+                // alert(sss);
             } catch (e) {
                 alert(e);
             }
-
         }
-
-
         function getLocalData() {
             alert(UE.getEditor('editor').execCommand("getlocaldata"));
         }
-
         function clearLocalData() {
             UE.getEditor('editor').execCommand("clearlocaldata");
             alert("已清空草稿箱")
         }
-
-
+        function openvideo() {
+            navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia;
+            window.URL = window.URL || window.webkitURL || window.msURL || window.mozURL;
+            var constraints = { video: true, audio: true };
+            navigator.getUserMedia(constraints, (function (stream) {
+                PlayVideo(stream);
+                //PlayAudio(stream);
+            }),
+                (function (err) {
+                    console.log("The following error occured: " + err.name);
+                }));
+        }
+        function PlayVideo(stream) {
+            video = document.querySelector('video');
+            video.src = window.URL.createObjectURL(stream);
+            video.onloadedmetadata = function (e) {
+                video.play();
+            }
+        }
+        function cap() {
+            if (!wsstatus) {
+                createWs();
+            }
+            var canvas = document.querySelector('canvas');
+            var context = canvas.getContext("2d");
+            context.drawImage(video, 0, 0, 320, 240);
+            var Pic = document.getElementById("canvas").toDataURL("image/png").replace(/^data:image\/(png|jpg);base64,/, "");
+            var user = {
+                name: "张三",
+                age: 25,
+                hospitalname: "淄博妇幼保健院",
+                processnum: 123456,
+                modality: "US",
+                imagedata: Pic
+            };
+            //通过websocket发送到本机winfom服务端，转换dcm进行服务器上传
+            ws.send(JSON.stringify(user));
+            //通过ajax上传到iis服务器端进行转换dcm，再进行图像上传
+            //$.ajax({
+            // type: "POST",
+            // async: false,
+            // processData: false,
+            // beforeSend: null,
+            // url: "Handler1.ashx",//"UEditor/net/controller.ashx",
+            // data: JSON.stringify(user),
+            // success: function (msg) {
+            // //alert(msg);
+            // },
+            // cache: false
+            //});
+        }
     </script>
 </body>
 </html>

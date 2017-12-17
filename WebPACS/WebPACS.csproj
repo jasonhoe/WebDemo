@@ -19,6 +19,8 @@
     <IISExpressAnonymousAuthentication />
     <IISExpressWindowsAuthentication />
     <IISExpressUseClassicPipelineMode />
+    <Use64BitIISExpress />
+    <UseGlobalApplicationHostFile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -38,7 +40,15 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Dicom">
+      <HintPath>R:\dicom\Dicom.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.CSharp" />
+    <Reference Include="Newtonsoft.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Newtonsoft.Json.10.0.3\lib\net40\Newtonsoft.Json.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System.Web.DynamicData" />
     <Reference Include="System.Web.Entity" />
     <Reference Include="System.Web.ApplicationServices" />
@@ -71,7 +81,6 @@
     <Content Include="css\nth.tabs.min.css" />
     <Content Include="css\react-bootstrap-table-all.min.css" />
     <Content Include="css\react-bootstrap-table.min.css" />
-    <Content Include="index.html" />
     <Content Include="css\awesomeStyle\awesome.css" />
     <Content Include="css\awesomeStyle\img\loading.gif" />
     <Content Include="css\demo.css" />
@@ -99,6 +108,8 @@
     <Content Include="js\bootstrap-popover-x.min.js" />
     <Content Include="js\bootstrap.js" />
     <Content Include="js\bootstrap.min.js" />
+    <Content Include="js\jquery.js" />
+    <Content Include="js\jquery.min.js" />
     <Content Include="js\jquery.scrollbar.js" />
     <Content Include="js\jquery.scrollbar.min.js" />
     <Content Include="js\npm.js" />
@@ -108,6 +119,7 @@
     <Content Include="js\react-bootstrap-table.min.js" />
     <Content Include="js\react-dom.js" />
     <Content Include="js\react.js" />
+    <Content Include="list.html" />
     <Content Include="TagsInput\dist\jquery-3.2.1.min.js" />
     <Content Include="TagsInput\dist\jquery-ui.css" />
     <Content Include="TagsInput\dist\jquery-ui.js" />
@@ -122,6 +134,7 @@
     <Content Include="TagsInput\src\jquery.tagsinput.js" />
     <Content Include="TagsInput\test\fake_json_endpoint.html" />
     <Content Include="TagsInput\test\fake_plaintext_endpoint.html" />
+    <Content Include="index.html" />
     <Content Include="UEditor\dialogs\anchor\anchor.html" />
     <Content Include="UEditor\dialogs\attachment\attachment.css" />
     <Content Include="UEditor\dialogs\attachment\attachment.html" />
@@ -421,10 +434,14 @@
     <Content Include="Web.config" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Handler1.ashx.cs">
+      <DependentUpon>Handler1.ashx</DependentUpon>
+    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="UEditor\net\App_Code\Config.cs" />
     <Compile Include="UEditor\net\App_Code\ConfigHandler.cs" />
     <Compile Include="UEditor\net\App_Code\CrawlerHandler.cs" />
+    <Compile Include="UEditor\net\App_Code\DicomUtility.cs" />
     <Compile Include="UEditor\net\App_Code\Handler.cs" />
     <Compile Include="UEditor\net\App_Code\ListFileHandler.cs" />
     <Compile Include="UEditor\net\App_Code\NotSupportedHandler.cs" />
@@ -832,6 +849,14 @@
     <Content Include="fonts\fontawesome-webfont.woff2" />
     <Content Include="fonts\FontAwesome.otf" />
     <Content Include="js\react-bootstrap-table.js.map" />
+    <Content Include="Handler1.ashx" />
+    <Content Include="image.json" />
+    <Content Include="js\jquery.min.map" />
+    <None Include="packages.config">
+      <SubType>Designer</SubType>
+    </None>
+    <Content Include="patients.json" />
+    <Content Include="patients1000.json" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
