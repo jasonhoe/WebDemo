@@ -1,6 +1,4 @@
-﻿
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
-          "http://www.w3.org/TR/html4/loose.dtd">
+﻿<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
     <title>ReportEditor</title>
@@ -65,11 +63,11 @@
         }
 
         .dengji {
-            background-color: #FFFFBB;
+            background-color: #cbceac;
         }
 
         .shenhe {
-            background-color: #FFB3FF;
+            background-color: #efdede;
         }
 
         #div_left {
@@ -137,6 +135,13 @@
                 wsstatus = false;
             }
         }
+
+        function appendImg(url) {
+            var temp = '<a id="img' + imagecount + '" href="' + url + '"><img src="' + url + '" width="320px" height="240"></a>';
+            $("#imglist").append(temp);
+            document.getElementById("img" + imagecount).scrollIntoView();
+            imagecount += 1;
+        }
         function InitImagesList() {
             $.getJSON("image.json", function (jsonobj) {
                 var pacsurl = 'http://localhost/pacs/report/getImage.ashx?dcm_path=';
@@ -200,9 +205,9 @@
                     $("#div_left").css("height", "880px");
                     $("#imglist").css("height", "880px");
                     $("#div_center").css("height", "880px");
-                    $("#div_right").css("height", "880px");
-                    $("#div_right_context").css("height", "880px");
-                    $("#treeDemo").css("height", "880px");
+                    $("#div_right").css("height", "550px");
+                    $("#div_right_context").css("height", "550px");
+                    $("#treeDemo").css("height", "550px");
                     break;
                 case 1050:
                     $("#div_left").css("height", "850px");
@@ -425,11 +430,7 @@
 </head>
 <body>
     <div id="div_left" style="width: 300px; float: left;">
-        <div id="data"></div>
-        <input type="button" value="打开采集" onclick="openvideo()" />
-        <input type="button" value="采集" onclick="cap()" />
-        <video id="video" width="320" height="240"></video>
-        <canvas id="canvas" style="display:none" width="320" height="240"></canvas>
+      
     </div>
     <div id="div_center" class="section" style="width: 620pt; height: 600pt; float: left; overflow-y: auto; overflow-x: hidden">
         <script id="editor" type="text/plain">
@@ -555,6 +556,14 @@
                 </a>
             </div>
         </div>
+        <div>
+            <br />
+            <input type="button" value="打开采集" onclick="openvideo()" />&nbsp;&nbsp;&nbsp;&nbsp;
+            <input type="button" value="采集" onclick="cap()" />
+            <video id="video" width="320" height="240"></video>
+            <canvas id="canvas" style="display:none" width="320" height="240"></canvas>
+        </div>
+
     </div>
     <div id="myPopover" class="popover popover-default">
         <div class="arrow"></div>
@@ -570,6 +579,7 @@
         var ReactBsTable = window.BootstrapTable;
         var products = [];
         var table = null;
+        var selectedRow;
         setTimeout(add, 1000);
         function add() {
             $.getJSON("patients1000.json", function (jsonobj) {
@@ -608,13 +618,19 @@
                 '历史影像'
             ), React.createElement(
                 'button',
-                { className: 'btn btn-warning' },
+                { className: 'btn btn-warning', onClick: openCap },
                 '图像采集'
             )
+        }
+
+        function openCap() {
+            //alert(selectedRow.PATIENT_NAME);
+            window.open("Capture.html?jsonstr=" + escape( JSON.stringify(selectedRow)));
         }
         var options = {
             onRowClick: function onRowClick(row) {
                 console.log(row);
+                selectedRow = row;
                 //alert('You click row id: ' + row.PATIENT_NAME);
             },
             onRowDoubleClick: function onRowDoubleClick(row) {
@@ -661,6 +677,63 @@
                     "诊室"
                 )
             ), document.getElementById("div_left"));
+
+        function openvideo() {
+            navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia;
+            window.URL = window.URL || window.webkitURL || window.msURL || window.mozURL;
+            var constraints = { video: true, audio: true };
+            navigator.getUserMedia(constraints, (function (stream) {
+                PlayVideo(stream);
+                //PlayAudio(stream);
+            }),
+                (function (err) {
+                    console.log("The following error occured: " + err.name);
+                }));
+        }
+        function PlayVideo(stream) {
+            video = document.querySelector('video');
+            video.src = window.URL.createObjectURL(stream);
+            video.onloadedmetadata = function (e) {
+                video.play();
+            }
+        }
+        function cap() {
+            if (!selectedRow) {
+                alert("请选择患者再进行采集图像");
+                return false;
+            }
+            if (!wsstatus) {
+                createWs();
+            }
+            var canvas = document.querySelector('canvas');
+            var context = canvas.getContext("2d");
+            context.drawImage(video, 0, 0, 320, 240);
+            var Pic = document.getElementById("canvas").toDataURL("image/png").replace(/^data:image\/(png|jpg);base64,/, "");
+            var user = {
+                name: selectedRow.PATIENT_NAME,
+                age: 25,
+                hospitalname: "淄博妇幼保健院",
+                processnum: selectedRow.PROCESS_NUM,
+                modality: selectedRow.MODALITY,
+                imagedata: Pic
+            };
+            //通过websocket发送到本机winfom服务端，转换dcm进行服务器上传
+            ws.send(JSON.stringify(user));
+
+            //通过ajax上传到iis服务器端进行转换dcm，再进行图像上传
+            //$.ajax({
+            // type: "POST",
+            // async: false,
+            // processData: false,
+            // beforeSend: null,
+            // url: "Handler1.ashx",//"UEditor/net/controller.ashx",
+            // data: JSON.stringify(user),
+            // success: function (msg) {
+            // //alert(msg);
+            // },
+            // cache: false
+            //});
+        }
     </script>
     <script type="text/javascript">
         //实例化编辑器
@@ -700,7 +773,7 @@
             saveInterval: 10000,//自动保存间隔时间，单位ms
             initialContent: "",//初始化编辑器的内容，也可以通过textarea/script给值
             tableDragable: false,
-            toolbarTopOffset: 400,
+            toolbarTopOffset: 400
         });
         function isFocus(e) {
             alert(UE.getEditor('editor').isFocus());
@@ -756,57 +829,7 @@
             UE.getEditor('editor').execCommand("clearlocaldata");
             alert("已清空草稿箱")
         }
-        function openvideo() {
-            navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia;
-            window.URL = window.URL || window.webkitURL || window.msURL || window.mozURL;
-            var constraints = { video: true, audio: true };
-            navigator.getUserMedia(constraints, (function (stream) {
-                PlayVideo(stream);
-                //PlayAudio(stream);
-            }),
-                (function (err) {
-                    console.log("The following error occured: " + err.name);
-                }));
-        }
-        function PlayVideo(stream) {
-            video = document.querySelector('video');
-            video.src = window.URL.createObjectURL(stream);
-            video.onloadedmetadata = function (e) {
-                video.play();
-            }
-        }
-        function cap() {
-            if (!wsstatus) {
-                createWs();
-            }
-            var canvas = document.querySelector('canvas');
-            var context = canvas.getContext("2d");
-            context.drawImage(video, 0, 0, 320, 240);
-            var Pic = document.getElementById("canvas").toDataURL("image/png").replace(/^data:image\/(png|jpg);base64,/, "");
-            var user = {
-                name: "张三",
-                age: 25,
-                hospitalname: "淄博妇幼保健院",
-                processnum: 123456,
-                modality: "US",
-                imagedata: Pic
-            };
-            //通过websocket发送到本机winfom服务端，转换dcm进行服务器上传
-            ws.send(JSON.stringify(user));
-            //通过ajax上传到iis服务器端进行转换dcm，再进行图像上传
-            //$.ajax({
-            // type: "POST",
-            // async: false,
-            // processData: false,
-            // beforeSend: null,
-            // url: "Handler1.ashx",//"UEditor/net/controller.ashx",
-            // data: JSON.stringify(user),
-            // success: function (msg) {
-            // //alert(msg);
-            // },
-            // cache: false
-            //});
-        }
+   
     </script>
 </body>
 </html>

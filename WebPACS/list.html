@@ -14,11 +14,11 @@
         }
 
         .dengji {
-            background-color: #FFFFBB;
+            background-color: #cbceac;
         }
 
         .shenhe {
-            background-color: #FFB3FF;
+            background-color: #efdede;
         }
     </style>
     <title></title>
@@ -29,6 +29,32 @@
 
     <input type="button" value="添加数据" onclick="add()" />
     <script type="text/javascript">
+        var wsImpl = window.WebSocket || window.MozWebSocket;
+            window.ws = new wsImpl('ws://127.0.0.1:8888/');
+            ws.onmessage = function (evt) {
+                 alert(evt.data);
+                 
+            };
+            // when the connection is established, this method is called
+            ws.onopen = function () {
+                // alert("open");
+                //wsstatus = true;
+                var client = {
+                    page: "list",
+                    level:"0",
+                    producer: "update",
+                    consumer: "add,update"
+                };
+                ws.send(JSON.stringify(client))
+            };
+            // when the connection is closed, this method is called
+            ws.onclose = function () {
+                // alert("close");
+                //wsstatus = false;
+            }
+    
+
+
         var ReactBsTable = window.BootstrapTable;
         var products = [];
         var table = null;
@@ -46,7 +72,29 @@
 
         }
 
-
+        function expandComponent() {
+            return React.createElement(
+                'button',
+                { className: 'btn btn-warning' },
+                '申请单'
+            ), React.createElement(
+                'button',
+                { className: 'btn btn-warning' },
+                '历史影像'
+            ), React.createElement(
+                'button',
+                { className: 'btn btn-warning', onClick: openCap },
+                '图像采集'
+            )
+        }
+        var reporthandle = null;
+        function openreport()
+        {
+            if (reporthandle != null) {
+                reporthandle.close();
+            }
+            reporthandle = window.open("index.html","报告编辑");
+        }
 
         function trClassFormat(row, rowIndex) {
             // row is the current row data
@@ -64,6 +112,7 @@
             },
             onRowDoubleClick: function onRowDoubleClick(row) {
                 console.log(row);
+                openreport();
                 //alert('You double click row id: ' + row.PATIENT_NAME);
             }
 
@@ -72,14 +121,15 @@
             mode: 'radio',  // multi select
             clickToSelect: true,
             bgColor: '#BBFF66',
-            hideSelectColumn: true
+            hideSelectColumn: true,
+            clickToExpand: true
         };
 
 
         var table = ReactDOM.render(
             React.createElement(
                 BootstrapTable,
-                { data: products, height: "500px", width: "600px", hover: true, condensed: true, trClassName: trClassFormat, search: true, searchPlaceholder: "输入任意内容筛选...", options: options, selectRow: selectRow },
+                { data: products, height: "500px", width: "600px", hover: true, condensed: true, trClassName: trClassFormat, search: true, searchPlaceholder: "输入任意内容筛选...", options: options, selectRow: selectRow, expandComponent },
                 React.createElement(
                     TableHeaderColumn,
                     { dataField: "REGISTRATION_ID", isKey: true, dataAlign: "center", dataSort: true },
@@ -174,6 +224,8 @@
                     "费用"
                 )
             ), document.getElementById("app"));
+
+
 
 
     </script>

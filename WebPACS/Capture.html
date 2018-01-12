@@ -1,0 +1,307 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <script src="js/jquery.js"></script>
+    <script src="RecordRTC.js"></script>
+    <title>Capture</title>
+    <style type="text/css">
+        #patinfo {
+        font-size:40px;
+        
+        }
+            #patinfo span {
+            color:blue;
+            
+            }
+    </style>
+    <script type="text/javascript">
+
+        var wsImpl = window.WebSocket || window.MozWebSocket;
+        var jsonstr = getUrlParam("jsonstr"); 
+        var wsstatus = false;
+
+        $(document).ready(function () {
+            eval("patinfoObj=" + jsonstr);
+            $("#patname").text(patinfoObj.PATIENT_NAME);
+            $("#patsex").text("nan");
+            $("#patage").text(patinfoObj.PATIENT_AGE);
+            $("#bodypart").text(patinfoObj.STUDY_BODYPART);
+            $("#processnum").text(patinfoObj.PROCESS_NUM)
+            $("#imgcount").text("0");
+           // createWs();
+            openvideo();
+
+        });
+        function getUrlParam(name) {
+            var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+            var r = window.location.search.substr(1).match(reg);
+            if (r != null) return unescape(r[2]); return null;
+        }
+        function openvideo() {
+            navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia;
+            window.URL = window.URL || window.webkitURL || window.msURL || window.mozURL;
+            var constraints = { video: true, audio: true };
+            navigator.getUserMedia(constraints, (function (stream) {
+                PlayVideo(stream);
+                //PlayAudio(stream);
+            }),
+                (function (err) {
+                    console.log("The following error occured: " + err.name);
+                }));
+        }
+        function PlayVideo(stream) {
+            video = document.querySelector('video');
+            video.src = window.URL.createObjectURL(stream);
+            video.onloadedmetadata = function (e) {
+                video.play();
+            }
+        }
+        function cap() {
+            eval("patinfoObj=" + jsonstr);
+             if (!patinfoObj) {
+                alert("请选择患者再进行采集图像");
+                return false;
+            }
+            if (!wsstatus) {
+                createWs();
+            }
+            var canvas = document.querySelector('canvas');
+            var context = canvas.getContext("2d");
+            context.drawImage(video, 0, 0, 768, 576);
+            var Pic = document.getElementById("canvas").toDataURL("image/png").replace(/^data:image\/(png|jpg);base64,/, "");
+            var user = {
+                name: patinfoObj.PATIENT_NAME,
+                age: patinfoObj.PATIENT_AGE,
+                hospitalname: patinfoObj.HOSPITAL_NAME,
+                processnum: patinfoObj.PROCESS_NUM,
+                modality: patinfoObj.MODALITY,
+                imagedata: Pic
+            };
+            //通过websocket发送到本机winfom服务端，转换dcm进行服务器上传
+            ws.send(JSON.stringify(user));
+
+            //通过ajax上传到iis服务器端进行转换dcm，再进行图像上传
+            //$.ajax({
+            // type: "POST",
+            // async: false,
+            // processData: false,
+            // beforeSend: null,
+            // url: "Handler1.ashx",//"UEditor/net/controller.ashx",
+            // data: JSON.stringify(user),
+            // success: function (msg) {
+            // //alert(msg);
+            // },
+            // cache: false
+            //});
+        }
+
+        var imagecount = 1
+        function createWs() {
+            window.ws = new wsImpl('ws://localhost:8181/');
+            ws.onmessage = function (evt) {
+                // alert(evt.data);
+                var imaurl = "http://localhost/pacs/report/getImage.ashx?dcm_path=E:/dcms/SC." + evt.data + ".dcm";
+                var temp = '<img id=img' + imagecount + ' src="' + imaurl + '" width="400px" height="300">';
+                $("#imglist").append(temp);
+                document.getElementById("img" + imagecount).scrollIntoView();
+                parent.appendImg(imaurl);
+
+                $("#imgcount").text(imagecount);
+                imagecount += 1;
+            };
+            // when the connection is established, this method is called
+            ws.onopen = function () {
+                // alert("open");
+                wsstatus = true;
+            };
+            // when the connection is closed, this method is called
+            ws.onclose = function () {
+                // alert("close");
+                wsstatus = false;
+            }
+        }
+
+
+  
+    </script>
+</head>
+<body>
+    <div style="width:800px;float:left">
+        <div id="patinfo" style="background-color:gainsboro">
+            姓名：<span id="patname"></span>   性别：<span id="patsex"></span>    年龄：<span id="patage"></span><br />
+            部位：<span id="bodypart"></span><br />
+            流水号：<span id="processnum"></span>   采图数量：<span id="imgcount"></span>
+        </div>
+        <video id="video" width="768" height="576"></video>
+        <br />
+        <input type="button" value="打开采集" onclick="openvideo()" />&nbsp;&nbsp;&nbsp;&nbsp;
+        <input type="button" value="采集" onclick="cap()" /><input type="button" value="录像" onclick="cap()" />
+        <div>
+            <label id="percentage">0%</label>
+            <progress id="progress-bar" value=0></progress><br />
+        </div>
+
+        <div>
+            <button id="btn-start-recording">Start Recording</button>
+            <button id="btn-stop-recording" disabled="">Stop Recording</button>
+        </div>
+        <canvas id="canvas" style="display:none" width="768" height="576"></canvas>
+    </div>
+    <div>
+<script>
+    //////////////////
+    // fetching DOM references
+    var btnStartRecording = document.querySelector('#btn-start-recording');
+    var btnStopRecording = document.querySelector('#btn-stop-recording');
+
+    var videoElement = document.querySelector('video');
+
+    var progressBar = document.querySelector('#progress-bar');
+    var percentage = document.querySelector('#percentage');
+
+    var recorder;
+
+    // reusable helpers
+
+    // this function submits recorded blob to nodejs server
+    function postFiles() {
+        var blob = recorder.getBlob();
+
+        // getting unique identifier for the file name
+        var fileName = generateRandomString() + '.webm';
+
+        var file = new File([blob], fileName, {
+            type: 'video/webm'
+        });
+
+        var vl = document.getElementById("videolist");
+        var video = document.createElement("video");
+        vl.append(video);
+        video.src = '';
+        video.poster = 'ajax-loader.gif';
+
+        xhr('http://localhost:9001/uploadFile', file, function (responseText) {
+       
+            var fileURL = responseText.fileURL;
+        
+            video.src = fileURL;
+            video.play();
+            video.muted = false;
+            video.controls = true;
+
+        });
+
+        if (mediaStream) mediaStream.stop();
+    }
+
+    // XHR2/FormData
+    function xhr(url, data, callback) {
+        var request = new XMLHttpRequest();
+        request.onreadystatechange = function () {
+            if (request.readyState == 4 && request.status == 200) {
+                callback(request.responseText);
+            }
+        };
+
+        request.upload.onprogress = function (event) {
+            progressBar.max = event.total;
+            progressBar.value = event.loaded;
+            progressBar.innerHTML = 'Upload Progress ' + Math.round(event.loaded / event.total * 100) + "%";
+        };
+
+        request.upload.onload = function () {
+            percentage.style.display = 'none';
+            progressBar.style.display = 'none';
+        };
+        var formData = new FormData();
+        formData.append('file', data);
+         
+       // request.open('POST', url, false);
+       // request.send(formData);
+
+        $.ajax({
+            url: url,
+            type: "POST",
+            data: formData,
+            contentType: false,
+            async: false,
+            processData: false,
+            success: function (data) {
+                callback(data);
+            },
+            error: function () {
+                alert("上传失败！");
+              
+            }
+        });
+       
+    }
+
+    // generating random string
+    function generateRandomString() {
+        if (window.crypto) {
+            var a = window.crypto.getRandomValues(new Uint32Array(3)),
+                token = '';
+            for (var i = 0, l = a.length; i < l; i++) token += a[i].toString(36);
+            return token;
+        } else {
+            return (Math.random() * new Date().getTime()).toString(36).replace(/\./g, '');
+        }
+    }
+
+    var mediaStream = null;
+    // reusable getUserMedia
+    function captureUserMedia(success_callback) {
+        var session = {
+            audio: true,
+            video: true
+        };
+
+        navigator.getUserMedia(session, success_callback, function (error) {
+            alert('Unable to capture your camera. Please check console logs.');
+            console.error(error);
+        });
+    }
+
+    // UI events handling
+    btnStartRecording.onclick = function () {
+        btnStartRecording.disabled = true;
+
+        captureUserMedia(function (stream) {
+            mediaStream = stream;
+
+            videoElement.src = window.URL.createObjectURL(stream);
+            videoElement.play();
+            videoElement.muted = true;
+            videoElement.controls = false;
+
+            recorder = RecordRTC(stream, {
+                type: 'video'
+            });
+
+            recorder.startRecording();
+
+            // enable stop-recording button
+            btnStopRecording.disabled = false;
+        });
+    };
+
+
+    btnStopRecording.onclick = function () {
+        btnStartRecording.disabled = false;
+        btnStopRecording.disabled = true;
+
+        recorder.stopRecording(postFiles);
+    };
+
+    window.onbeforeunload = function () {
+        startRecording.disabled = false;
+    };
+        /////////////////////
+</script>
+    </div>
+    <div id="imglist" style="width:220px; float:left;height:800px;overflow:auto"></div>
+    <div id="videolist" style="width:420px; float:left;height:800px;overflow:auto"></div>
+</body>
+</html>

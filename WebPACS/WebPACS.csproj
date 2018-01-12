@@ -67,6 +67,8 @@
     <Reference Include="System.EnterpriseServices" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="ajax-loader.gif" />
+    <Content Include="Capture.html" />
     <Content Include="css\bootstrap-popover-x.css" />
     <Content Include="css\bootstrap-popover-x.min.css" />
     <Content Include="css\bootstrap-theme.css" />
@@ -120,6 +122,8 @@
     <Content Include="js\react-dom.js" />
     <Content Include="js\react.js" />
     <Content Include="list.html" />
+    <Content Include="RecordRTC.js" />
+    <Content Include="RequestForm.aspx" />
     <Content Include="TagsInput\dist\jquery-3.2.1.min.js" />
     <Content Include="TagsInput\dist\jquery-ui.css" />
     <Content Include="TagsInput\dist\jquery-ui.js" />
@@ -431,13 +435,22 @@
     <Content Include="UEditor\ueditor.parse.js" />
     <Content Include="UEditor\ueditor.parse.min.js" />
     <Content Include="UEditor\新建文本文档.html" />
-    <Content Include="Web.config" />
+    <Content Include="Web.config">
+      <SubType>Designer</SubType>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Handler1.ashx.cs">
       <DependentUpon>Handler1.ashx</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RequestForm.aspx.cs">
+      <DependentUpon>RequestForm.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="RequestForm.aspx.designer.cs">
+      <DependentUpon>RequestForm.aspx</DependentUpon>
+    </Compile>
     <Compile Include="UEditor\net\App_Code\Config.cs" />
     <Compile Include="UEditor\net\App_Code\ConfigHandler.cs" />
     <Compile Include="UEditor\net\App_Code\CrawlerHandler.cs" />
@@ -447,6 +460,9 @@
     <Compile Include="UEditor\net\App_Code\NotSupportedHandler.cs" />
     <Compile Include="UEditor\net\App_Code\PathFormater.cs" />
     <Compile Include="UEditor\net\App_Code\UploadHandler.cs" />
+    <Compile Include="uploadvideo.ashx.cs">
+      <DependentUpon>uploadvideo.ashx</DependentUpon>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Content Include="UEditor\.git\COMMIT_EDITMSG" />
@@ -857,6 +873,7 @@
     </None>
     <Content Include="patients.json" />
     <Content Include="patients1000.json" />
+    <Content Include="uploadvideo.ashx" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
