@@ -3,7 +3,9 @@
 <head>
     <meta charset="utf-8" />
     <script src="js/jquery.js"></script>
-    <script src="RecordRTC.js"></script>
+
+    <script src="RecordRTC/RecordRTC.js"></script>
+ 
     <title>Capture</title>
     <style type="text/css">
         #patinfo {
@@ -30,7 +32,7 @@
             $("#processnum").text(patinfoObj.PROCESS_NUM)
             $("#imgcount").text("0");
            // createWs();
-            openvideo();
+           // openvideo();
 
         });
         function getUrlParam(name) {
@@ -101,7 +103,7 @@
             window.ws = new wsImpl('ws://localhost:8181/');
             ws.onmessage = function (evt) {
                 // alert(evt.data);
-                var imaurl = "http://localhost/pacs/report/getImage.ashx?dcm_path=E:/dcms/SC." + evt.data + ".dcm";
+                var imaurl = "http://10.68.4.29/pacs/report/getImage.ashx?dcm_path=E:/dcms/SC." + evt.data + ".dcm";
                 var temp = '<img id=img' + imagecount + ' src="' + imaurl + '" width="400px" height="300">';
                 $("#imglist").append(temp);
                 document.getElementById("img" + imagecount).scrollIntoView();
@@ -133,7 +135,8 @@
             部位：<span id="bodypart"></span><br />
             流水号：<span id="processnum"></span>   采图数量：<span id="imgcount"></span>
         </div>
-        <video id="video" width="768" height="576"></video>
+       <div id="errorMsg"></div>
+        <video id="video" width="768" height="576" autoplay playsinline></video>
         <br />
         <input type="button" value="打开采集" onclick="openvideo()" />&nbsp;&nbsp;&nbsp;&nbsp;
         <input type="button" value="采集" onclick="cap()" /><input type="button" value="录像" onclick="cap()" />
@@ -230,8 +233,8 @@
             success: function (data) {
                 callback(data);
             },
-            error: function () {
-                alert("上传失败！");
+            error: function (e) {
+                alert("上传失败！"+e);
               
             }
         });
@@ -277,7 +280,8 @@
             videoElement.controls = false;
 
             recorder = RecordRTC(stream, {
-                type: 'video'
+                type: 'video',
+                autoWriteToDisk: true
             });
 
             recorder.startRecording();
@@ -300,8 +304,13 @@
     };
         /////////////////////
 </script>
+        
+ 
     </div>
     <div id="imglist" style="width:220px; float:left;height:800px;overflow:auto"></div>
     <div id="videolist" style="width:420px; float:left;height:800px;overflow:auto"></div>
+
+    <script src="RecordRTC/adapter.js"></script>
+    <script src="RecordRTC/main.js"></script>
 </body>
 </html>

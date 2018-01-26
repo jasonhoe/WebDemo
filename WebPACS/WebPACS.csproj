@@ -67,7 +67,10 @@
     <Reference Include="System.EnterpriseServices" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="a.html" />
+    <Content Include="adapter.js" />
     <Content Include="ajax-loader.gif" />
+    <Content Include="b.html" />
     <Content Include="Capture.html" />
     <Content Include="css\bootstrap-popover-x.css" />
     <Content Include="css\bootstrap-popover-x.min.css" />
@@ -122,6 +125,7 @@
     <Content Include="js\react-dom.js" />
     <Content Include="js\react.js" />
     <Content Include="list.html" />
+    <Content Include="main.js" />
     <Content Include="RecordRTC.js" />
     <Content Include="RequestForm.aspx" />
     <Content Include="TagsInput\dist\jquery-3.2.1.min.js" />
